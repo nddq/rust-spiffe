@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- **Broker API (experimental):** New `broker-api` feature with bindings for the [SPIFFE Broker API](https://github.com/spiffe/spiffe/blob/main/standards/SPIFFE_Broker_API.md): the generated `spiffe.broker` client and messages, the `broker.spiffe.io` security header with an `add_security_header` interceptor, and `From` conversions that pack PID and Kubernetes object references into a `WorkloadReference` with the full type URL.
+
 ## [0.16.1] - 2026-08-08
 
 ### Fixed

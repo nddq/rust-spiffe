@@ -336,6 +336,18 @@ Provides:
 * Streaming watch semantics
 * Agent-side JWT validation (`validate_jwt_token`)
 
+#### `broker-api` (experimental)
+
+Bindings for the [SPIFFE Broker API](https://github.com/spiffe/spiffe/blob/main/standards/SPIFFE_Broker_API.md), which a broker uses to get SVIDs and bundles on behalf of the workloads it serves. Requires `transport-grpc`.
+
+Provides:
+
+* The generated `spiffe.broker` client and messages (`broker_api::pb`)
+* The required `broker.spiffe.io` security header and an `add_security_header` interceptor
+* `From` conversions that build a `WorkloadReference` from a PID or Kubernetes object reference
+
+The Broker Endpoint requires mutual TLS, so the caller builds the gRPC channel.
+
 #### `x509-source`
 
 High-level X.509 watcher and caching abstraction. Requires `workload-api` (and transitively `x509`).

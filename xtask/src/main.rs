@@ -45,13 +45,33 @@ fn repo_root() -> anyhow::Result<PathBuf> {
         .map(Path::to_path_buf)
 }
 
-#[expect(clippy::print_stdout, reason = "sloppy CLI")]
 fn gen_spiffe_protos() -> anyhow::Result<()> {
-    let repo_root = repo_root()?;
+    let crate_dir = repo_root()?.join("spiffe");
+    gen_spiffe_proto(
+        &crate_dir,
+        "workload.proto",
+        "src/workload_api/pb/workload.rs",
+        None,
+    )?;
+    // Broker API references are packed into `google.protobuf.Any`. SPIRE matches the
+    // full type URL, so the generated messages carry the `type.googleapis.com` domain.
+    gen_spiffe_proto(
+        &crate_dir,
+        "broker.proto",
+        "src/broker_api/pb/broker.rs",
+        Some("type.googleapis.com"),
+    )
+}
 
-    let crate_dir = repo_root.join("spiffe");
+#[expect(clippy::print_stdout, reason = "sloppy CLI")]
+fn gen_spiffe_proto(
+    crate_dir: &Path,
+    proto_name: &str,
+    output: &str,
+    type_url_domain: Option<&str>,
+) -> anyhow::Result<()> {
     let proto_dir = crate_dir.join("src/proto");
-    let proto_file = proto_dir.join("workload.proto");
+    let proto_file = proto_dir.join(proto_name);
 
     ensure!(
         proto_file.exists(),
@@ -60,8 +80,11 @@ fn gen_spiffe_protos() -> anyhow::Result<()> {
     );
 
     // Committed output directory
-    let out_dir = crate_dir.join("src/workload_api/pb");
-    fs::create_dir_all(&out_dir)
+    let final_path = crate_dir.join(output);
+    let out_dir = final_path
+        .parent()
+        .context("output path must have a parent directory")?;
+    fs::create_dir_all(out_dir)
         .with_context(|| format!("failed to create output dir: {}", out_dir.display()))?;
 
     // Generate into a clean temp dir to avoid stale files influencing selection
@@ -72,12 +95,12 @@ fn gen_spiffe_protos() -> anyhow::Result<()> {
         &[proto_file],
         &proto_dir,
         &tmp_dir,
-        "failed to compile spiffe workload proto",
+        type_url_domain,
+        &format!("failed to compile spiffe proto {proto_name}"),
     )?;
 
     // We expect exactly one generated .rs file for this invocation.
     let generated = single_generated_rs(&tmp_dir)?;
-    let final_path = out_dir.join("workload.rs");
 
     replace_file(&generated, &final_path)?;
     fs::remove_dir_all(&tmp_dir)
@@ -119,6 +142,7 @@ fn gen_spire_api_protos() -> anyhow::Result<()> {
         &[delegated],
         &proto_root,
         &tmp_dir,
+        None,
         "failed to compile SPIRE delegated identity proto",
     )?;
 
@@ -152,10 +176,16 @@ fn compile_protos(
     proto_files: &[PathBuf],
     include_dir: &Path,
     out_dir: &Path,
+    type_url_domain: Option<&str>,
     err_ctx: &str,
 ) -> anyhow::Result<()> {
     let mut proto_config = prost_build::Config::new();
     proto_config.bytes(["."]);
+    if let Some(domain) = type_url_domain {
+        proto_config
+            .enable_type_names()
+            .type_name_domain(["."], domain);
+    }
 
     let fds = protox::compile(proto_files.iter().map(PathBuf::as_path), [include_dir])
         .with_context(|| err_ctx.to_string())?;
