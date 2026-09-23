@@ -91,6 +91,12 @@
 //! | `x509-source` | High-level X.509 watcher/caching built on the Workload API |
 //! | `jwt-source` | High-level JWT watcher/caching built on the Workload API |
 //!
+//! ### Experimental
+//!
+//! | Feature | Description |
+//! |---------|-------------|
+//! | `broker-api` | SPIFFE Broker API bindings: generated client and messages, the security-header interceptor, and workload-reference helpers |
+//!
 //! **Notes:**
 //!
 //! - The `x509` feature gates heavy X.509 parsing dependencies.
@@ -142,6 +148,9 @@ pub mod workload_api;
 
 #[cfg(feature = "x509-source")]
 pub mod x509_source;
+
+#[cfg(feature = "broker-api")]
+pub mod broker_api;
 
 #[cfg(feature = "jwt-source")]
 pub mod jwt_source;

@@ -488,6 +488,22 @@ alternative SVID/bundle representations while reusing the transport layer.
 
 ---
 
+### Experimental features
+
+#### `broker-api`
+
+Bindings for the [SPIFFE Broker API](https://github.com/spiffe/spiffe/blob/main/standards/SPIFFE_Broker_API.md), which a broker uses to get SVIDs and bundles on behalf of the workloads it serves.
+
+Provides:
+
+* The generated `spiffe.broker` client and messages (`broker_api::pb::spiffe::broker`), whose `Debug` output hides SVID private keys and JWT tokens
+* An `add_security_header` interceptor for the required `broker.spiffe.io` security header
+* `From` conversions that build a `WorkloadReference` from a PID or Kubernetes object reference
+
+The Broker Endpoint requires mutual TLS, so the caller builds the gRPC channel. The channel must also check that the provider presents its expected SPIFFE ID.
+
+---
+
 ### Notes on JWT verification features
 
 * Each backend feature (`jwt-verify-rust-crypto`, `jwt-verify-aws-lc-rs`) is self-contained and automatically includes

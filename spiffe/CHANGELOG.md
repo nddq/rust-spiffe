@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- **Broker API (experimental):** New `broker-api` feature with bindings for the [SPIFFE Broker API](https://github.com/spiffe/spiffe/blob/main/standards/SPIFFE_Broker_API.md): the generated `spiffe.broker` client and messages, an `add_security_header` interceptor for the required `broker.spiffe.io` metadata, and `From` conversions that pack PID and Kubernetes object references into a `WorkloadReference` with the full type URL. The `Debug` output of the SVID messages hides private keys and JWT tokens.
+
 ## [0.16.1] - 2026-08-08
 
 ### Fixed
